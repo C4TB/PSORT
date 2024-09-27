@@ -113,52 +113,6 @@ patients that increase the slope of their regression line. This is why
 ustekinumab appears to be the more effective treatment according to a
 least squares estimate.
 
-### Box Plot
-
-Compare this plot with the more conventional box plot, in which we
-simply visualise the spread of delta PASI scores for patients under both
-treatments.
-
-``` r
-ggplot(df, aes(Drug, DeltaPASI, fill = Drug)) + 
-  geom_boxplot() + 
-  geom_jitter(position = position_jitter(0.2)) +
-  labs(title = 'Response by Drug',
-           y = 'Delta PASI') + 
-  theme_bw() + 
-  theme(plot.title = element_text(hjust = .5)) + 
-  scale_fill_d3()
-```
-
-<p align='center'>
-<img src="DEA_files/figure-gfm/pasi_box-1.png" style="display: block; margin: auto;" />
-</p>
-
-This plot suggests that adalimumab, rather than ustekinumab, is in fact
-the more effective treatment. Numbers bear this intuition out:
-
-``` r
-expand.grid(
-  Treatment = c('Adalimumab', 'Ustekinumab'),
-   Estimate = c('Least_Squares', 'Maximum_Likelihood')
-) %>%
-  mutate(Improvement = c(1 - coef(m_a), 
-                         1 - coef(m_u),
-                         df[Drug == 'Adalimumab', mean(DeltaPASI)],
-                         df[Drug == 'Ustekinumab', mean(DeltaPASI)]))
-```
-
-    ##     Treatment           Estimate Improvement
-    ## 1  Adalimumab      Least_Squares   0.6612239
-    ## 2 Ustekinumab      Least_Squares   0.7778583
-    ## 3  Adalimumab Maximum_Likelihood   0.7512050
-    ## 4 Ustekinumab Maximum_Likelihood   0.7372463
-
-Note that differences are not especially large under either method of
-estimation, but it is interesting to see that our evaluation of which
-drug performs better in this study is at least partially determined by
-which measurement we use.
-
 # Transcriptomic EDA
 
 Before conducting transcriptomic EDA, we merge counts with gene-level
