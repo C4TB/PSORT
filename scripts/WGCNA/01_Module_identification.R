@@ -22,6 +22,7 @@ library(tidyverse)
 library(edgeR)
 library(limma)
 library(WGCNA)
+library(reshape2)
 
 #' ## Load gene annotation data
 
@@ -42,6 +43,11 @@ dir.create(output_directory)
 #'
 #' We'll start by analysing the skin data.
 #' 
+#' ## Create output sub-directory
+
+output_directory2 <- paste0(output_directory,"/Skin")
+dir.create(output_directory2)
+
 #' ## Load data
 #' 
 #' ### Clinical data
@@ -162,6 +168,10 @@ cnts$Discovery_skin[1:5, 1:5]
 
 cnts$Replication_skin[1:5, 1:5]
 
+#' We'll save the normalised counts for use in downstream analyses.
+
+saveRDS(cnts, paste0(output_directory2,"/cnts.rds"))
+
 #' ## Choose soft-thresholding power
 
 #' Module identification will be carried out using the PSORT-D data. Prior to this we need to identify an
@@ -250,6 +260,9 @@ net <- blockwiseModules(
   maxBlockSize = ncol(cnts$Discovery_skin)
 )
 
+# Save
+saveRDS(net, paste0(output_directory2,"/net.rds"))
+
 #' Now we can visualise the module dendrogram.
 
 # Convert labels to colors for plotting
@@ -258,7 +271,7 @@ moduleColors <- labels2colors(net$colors)
 # Plot the dendrogram and the module colors underneath
 plotDendroAndColors(
   net$dendrograms[[1]], 
-  moculeColors[net$blockGenes[[1]]],
+  moduleColors[net$blockGenes[[1]]],
   "Module colors",
   dendroLabels = FALSE, 
   hang = 0.03,
@@ -266,20 +279,9 @@ plotDendroAndColors(
   guideHang = 0.05
 )
 
-
-
-
-moduleLabels <- net$colors
-
-
-#MEs <- net$MEs
-#geneTree <- net$dendrograms[[1]]
-# Save module colors and labels for use in subsequent parts
-#save(MEs, moduleLabels, moduleColors, geneTree, file = paste0(misc_path,"/module_data.RData"))
-# Save counts
-#saveRDS(cnts, file = paste0(misc_path,"/counts.rds"))
-
-
+#' ## Module assignments
+#' 
+#' Next, we record the assignments of genes to modules and save this to file.
 
 modules <- bind_rows(lapply(
   X = unique(moduleColors),
@@ -288,87 +290,66 @@ modules <- bind_rows(lapply(
     mutate(Module = x)
 ))
 
+head(modules)
 
+# Save
+write.table(modules, paste0(output_directory2,"/modules.txt"), sep = "\t", row.names = F, quote = F)
 
-# Parameters
-network_type = "signed" 
-cor_func = "pearson"
-var_func = "none" 
-tissue = "Skin" 
-# Path to WGCNA data
-file_path <- "C:/Users/b6054775A/Documents/PhD/analysis/WGCNA_multi/"
-file_path <- paste0(
-  file_path,
-  list.files(file_path)[grep(paste(network_type, cor_func, var_func, tissue, sep = "_"), list.files(file_path))]
-)
-# Load modules
-files <- list.files(paste0(file_path,"/modules/"))
-mod_list <- vector(mode = "list", length = length(files))
-for(i in 1:length(files)){
-  mod_list[[i]] <- read.delim(paste0(file_path,"/modules/",files[i]))
-  mod_list[[i]] <- mod_list[[i]]$EnsemblID
-  names(mod_list)[i] <- gsub("_.*","",files[i])
+#' We can also examine the size of each module.
+
+table(modules$Module)
+
+#' ## Module eigengenes
+#' 
+#' Now we can use the module assignments to calculate module eigengenes for each module.
+
+eigen <- moduleEigengenes(cnts$Discovery_skin, moduleColors)$eigengenes %>%
+  rownames_to_column(var = "Sample_id") %>%
+  rename_with(~ gsub("ME", "", .x, fixed = TRUE))
+
+eigen[1:5, 1:5]
+
+#' We also do this for the PSORT-R cohort (using module assignments defined in the PSORT-D cohort). 
+#' The number of genes retained in the filtered counts is different between PSORT-D and PSORT-R; therefore, we
+#' use the overlapping genes to calculate eigengenes for the PSORT-R cohort. 
+
+# Module labels for PSORT-R data
+moduleColors_r <- net$colors[intersect(colnames(cnts$Replication_skin), names(net$colors))]
+
+# Subset counts
+cnts$Replication_skin <- cnts$Replication_skin[,names(moduleColors_r)]
+
+# Convert labels to colors
+moduleColors_r <- labels2colors(moduleColors_r)
+
+# Calculate eigengenes
+eigen_r <- moduleEigengenes(cnts$Replication_skin, moduleColors_r)$eigengenes %>%
+  rownames_to_column(var = "Sample_id") %>%
+  rename_with(~ gsub("ME", "", .x, fixed = TRUE))
+
+eigen_r[1:5, 1:5]
+
+#' ## Module membership
+
+# Performs gene-module correlation
+geneModuleCor <- function(cnts_dat, eigen_dat){
+  eigen_dat <- eigen_dat %>% 
+    remove_rownames %>% 
+    column_to_rownames("Sample_id")
+  eigen_dat <- eigen_dat[rownames(cnts_dat),]
+  # Calculate gene eigen_datgene correlations and associated p-values
+  cp = WGCNA::corAndPvalue(cnts_dat, eigen_dat)
+  # Merge correlation coefficients and p-values for each gene-eigen_datgene pair into one data frame
+  cor_dat <- melt(cp$cor)
+  p_dat <- melt(cp$p)
+  dat <- merge(cor_dat, p_dat, by = c("Var1", "Var2"))
+  colnames(dat) <- c("EnsemblID", "Module", "Cor", "P.Value")
+  # Convert factor columns to character columns
+  dat$EnsemblID <- as.character(dat$EnsemblID)
+  dat$Module <- as.character(dat$Module)
+  return(dat)
 }
 
+mm <- geneModuleCor(cnts_dat = cnts$Discovery_skin, eigen_dat = eigen)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+mm_r <- geneModuleCor(cnts_dat = cnts$Replication_skin, eigen_dat = eigen_r)
