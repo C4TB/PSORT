@@ -309,6 +309,9 @@ eigen <- moduleEigengenes(cnts$Discovery_skin, moduleColors)$eigengenes %>%
 
 eigen[1:5, 1:5]
 
+# Save
+write.table(eigen, paste0(output_directory2,"/eigengenes.txt"), sep = "\t", row.names = F, quote = F)
+
 #' We also do this for the PSORT-R cohort (using module assignments defined in the PSORT-D cohort). 
 #' The number of genes retained in the filtered counts is different between PSORT-D and PSORT-R; therefore, we
 #' use the overlapping genes to calculate eigengenes for the PSORT-R cohort. 
@@ -329,7 +332,13 @@ eigen_r <- moduleEigengenes(cnts$Replication_skin, moduleColors_r)$eigengenes %>
 
 eigen_r[1:5, 1:5]
 
+# Save
+write.table(eigen_r, paste0(output_directory2,"/eigengenes_r.txt"), sep = "\t", row.names = F, quote = F)
+
 #' ## Module membership
+#' 
+#' Here we will calculate module membership for each gene with every module; this is defined as the correlation
+#' of a gene's expression values with a module eigengene.
 
 # Performs gene-module correlation
 geneModuleCor <- function(cnts_dat, eigen_dat){
@@ -337,7 +346,7 @@ geneModuleCor <- function(cnts_dat, eigen_dat){
     remove_rownames %>% 
     column_to_rownames("Sample_id")
   eigen_dat <- eigen_dat[rownames(cnts_dat),]
-  # Calculate gene eigen_datgene correlations and associated p-values
+  # Calculate gene eigengene correlations and associated p-values
   cp = WGCNA::corAndPvalue(cnts_dat, eigen_dat)
   # Merge correlation coefficients and p-values for each gene-eigen_datgene pair into one data frame
   cor_dat <- melt(cp$cor)
@@ -352,4 +361,266 @@ geneModuleCor <- function(cnts_dat, eigen_dat){
 
 mm <- geneModuleCor(cnts_dat = cnts$Discovery_skin, eigen_dat = eigen)
 
+head(mm)
+
+# Save
+write.table(mm, paste0(output_directory2,"/mm.txt"), sep = "\t", row.names = F, quote = F)
+
+#' We'll also do this for the PSORT-R data.
+
 mm_r <- geneModuleCor(cnts_dat = cnts$Replication_skin, eigen_dat = eigen_r)
+
+head(mm_r)
+
+# Save
+write.table(mm_r, paste0(output_directory2,"/mm_r.txt"), sep = "\t", row.names = F, quote = F)
+
+#' # Blood
+#'
+#' Now we will analyse the blood data.
+#' 
+#' ## Create output sub-directory
+
+output_directory2 <- paste0(output_directory,"/Blood")
+dir.create(output_directory2)
+
+#' ## Load data
+#' 
+#' ### Clinical data
+#' 
+#' We load the clinical data for each cohort.
+
+# Load clinical data for PSORT-D blood samples
+clin <- read.delim("data/clinical_data/PSORT-D_Blood_Clinical_Data_01-Apr-20.txt") %>%
+  select(Patient_id, Sample_id, Drug, Tissue, Time)
+
+dim(clin)
+
+head(clin)
+
+#' Preliminary analysis revealed some outlier samples in the blood data that we don't want to include in the
+#' analysis. There are also some smaples from other cohorts that we don't want to include.
+#' Here we will read in a file containing the IDs of samples that we want to analyse; we'll use this to
+#' subset the clinical data.
+
+samples <- read.delim("data/clinical_data/PSORT-D_Blood_analysis_samples.txt")
+
+clin <- clin %>% filter(Sample_id %in% samples$Sample_id)
+
+dim(clin)
+
+#' ### Gene-level counts
+#' 
+#' We also load gene-level counts for each cohort.
+
+# Load counts for PSORT-D blood samples
+cnts <- readRDS("data/gene_level_counts/PSORT-D_Blood_counts_01-Apr-2020-13-00-10.rds")
+
+# Subset
+cnts <- cnts[,clin$Sample_id]
+
+dim(cnts)
+
+cnts[1:5, 1:5]
+
+#' ## Filter and normalise counts
+#' 
+#' We now filter and normalise the counts using the function defined in the skin section above.
+
+cnts <- normCounts(cnts_dat = cnts, clin_dat = clin,anno_dat = anno)
+
+#' And we derive log2-CPM counts using the coom function.
+
+cnts <- voom(cnts)$E
+
+#' We also need to transpose the counts.
+
+cnts <- t(cnts)
+
+cnts[1:5, 1:5]
+
+#' Again, we'll save the normalised counts for use in downstream analyses.
+
+saveRDS(cnts, paste0(output_directory2,"/cnts.rds"))
+
+#' ## Choose soft-thresholding power
+
+#' Again, we need to define an appropriate soft-thresholding power.
+
+# Choose a set of soft-thresholding powers
+powers <- c(c(1:10), seq(from = 12, to = 20, by = 2))
+# Call the network topology analysis function
+sft <- pickSoftThreshold(
+  cnts, 
+  powerVector = powers, 
+  verbose = 5, 
+  networkType = "signed", 
+  corFnc = WGCNA::cor
+)
+
+# Plot the results
+par(mfrow = c(1, 2))
+cex1 = 0.9
+# Scale-free topology fit index as a function of the soft-thresholding power
+plot(
+  sft$fitIndices[,1], 
+  -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+  xlab="Soft Threshold (power)",
+  ylab="Scale Free Topology Model Fit,signed R^2",
+  type="n",
+  main = paste("Scale independence")
+)
+text(
+  sft$fitIndices[,1], 
+  -sign(sft$fitIndices[,3])*sft$fitIndices[,2], 
+  labels = powers, 
+  cex = cex1, 
+  col="red"
+)
+# This line corresponds to using an R^2 cut-off of h
+abline(h = 0.80, col = "red")
+# Mean connectivity as a function of the soft-thresholding power
+plot(
+  sft$fitIndices[,1], 
+  sft$fitIndices[,5],
+  xlab="Soft Threshold (power)",
+  ylab="Mean Connectivity", 
+  type="n",
+  main = paste("Mean connectivity")
+)
+text(
+  sft$fitIndices[,1], 
+  sft$fitIndices[,5], 
+  labels = powers, 
+  cex = cex1, 
+  col = "red"
+)
+
+#' Based on these plots, we'll choose a soft-thresholding power of 12.
+
+#' ## One-step network construction and module detection
+
+net <- blockwiseModules(
+  cnts, 
+  power = 5, 
+  networkType = "signed",
+  corType = "pearson", 
+  maxPOutliers = 0.1,
+  TOMType = "signed", 
+  minModuleSize = 30,
+  reassignThreshold = 0, 
+  mergeCutHeight = 0.1,
+  numericLabels = TRUE, 
+  pamRespectsDendro = FALSE,
+  stabilityCriterion = "Individual fraction",
+  saveTOMs = FALSE,
+  verbose = 3, 
+  maxBlockSize = ncol(cnts)
+)
+
+# Save
+saveRDS(net, paste0(output_directory2,"/net.rds"))
+
+#' Now we can visualise the module dendrogram. We will also rename the blood modules to make them distinct from
+#' the skin modules.
+
+# Convert labels to colors for plotting
+moduleColors <- labels2colors(net$colors)
+
+table(moduleColors)
+
+# Create data frame that maps between old names and new names
+new_names <- c(
+  "darkorchid" = "black",
+  "dodgerblue" = "blue",
+  "gold" = "brown",
+  "aquamarine" = "cyan",
+  "sienna" = "darkgreen",
+  "darkslategrey" = "darkgrey",
+  "coral" = "darkorange",
+  "firebrick" = "darkred",
+  "khaki" = "darkturquoise",
+  "limegreen" = "green",
+  "palegreen" = "greenyellow",
+  "grey" = "grey",
+  "slategrey" = "grey60",
+  "thistle" = "lightcyan",
+  "rosybrown" = "lightgreen",
+  "sandybrown" = "lightyellow",
+  "maroon" = "magenta",
+  "lightcoral" = "midnightblue",
+  "orangered" = "orange",
+  "plum" = "pink",
+  "orchid" = "purple",
+  "chocolate" = "red",
+  "cadetblue" = "royalblue",
+  "burlywood" = "salmon",
+  "darkviolet" = "tan",
+  "navy" = "turquoise",
+  "olivedrab" = "yellow"
+)
+new_names <- data.frame(Old = new_names, New = names(new_names), row.names = NULL)
+
+# Rename modules
+for(i in 1:length(moduleColors)){
+  moduleColors[i] <- new_names$New[which(new_names$Old == moduleColors[i])]
+}
+
+# Plot the dendrogram and the module colors underneath
+plotDendroAndColors(
+  net$dendrograms[[1]], 
+  moduleColors[net$blockGenes[[1]]],
+  "Module colors",
+  dendroLabels = FALSE, 
+  hang = 0.03,
+  addGuide = TRUE, 
+  guideHang = 0.05
+)
+
+#' ## Module assignments
+#' 
+#' Next, we record the assignments of genes to modules and save this to file.
+
+modules <- bind_rows(lapply(
+  X = unique(moduleColors),
+  FUN = function(x) anno %>% 
+    filter(EnsemblID %in% colnames(cnts)[moduleColors == x]) %>%
+    mutate(Module = x)
+))
+
+head(modules)
+
+# Save
+write.table(modules, paste0(output_directory2,"/modules.txt"), sep = "\t", row.names = F, quote = F)
+
+#' We can also examine the size of each module.
+
+table(modules$Module)
+
+#' ## Module eigengenes
+#' 
+#' Now we can use the module assignments to calculate module eigengenes for each module.
+
+eigen <- moduleEigengenes(cnts, moduleColors)$eigengenes %>%
+  rownames_to_column(var = "Sample_id") %>%
+  rename_with(~ gsub("ME", "", .x, fixed = TRUE))
+
+eigen[1:5, 1:5]
+
+# Save
+write.table(eigen, paste0(output_directory2,"/eigengenes.txt"), sep = "\t", row.names = F, quote = F)
+
+#' ## Module membership
+#' 
+#' Here we will calculate module membership for each gene with every module.
+
+mm <- geneModuleCor(cnts_dat = cnts, eigen_dat = eigen)
+
+head(mm)
+
+# Save
+write.table(mm, paste0(output_directory2,"/mm.txt"), sep = "\t", row.names = F, quote = F)
+
+#' # Session information
+
+sessionInfo()
