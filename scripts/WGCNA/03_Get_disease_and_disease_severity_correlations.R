@@ -1,5 +1,5 @@
 #' ---
-#' title: "Correlation of traits with module eigengenes and latent factors"
+#' title: "Correlation of disease endotypes and disease severity with module eigengenes and latent factors"
 #' author: Ashley Rider
 #' output:
 #'    github_document:
@@ -23,7 +23,7 @@ library(reshape2)
 
 #' ## Create output directory
 
-output_directory <- "results/WGCNA/02_Get_trait_correlations"
+output_directory <- "results/WGCNA/03_Get_disease_and_disease_severity_correlations"
 dir.create(output_directory)
 
 #' # Skin
@@ -79,17 +79,11 @@ for(i in 1:length(clin)){
     mutate(Anti_TNF_Naive = if_else(Etanercept == "Stopped_before_wk00", "No", Anti_TNF_Naive))
 }
 
-#' Prelinary analysis also revealed that the distribution of delta PASI is very skewed; we correct this here
-#' with a double exponential transformation.
-  
-clin$Discovery_skin$dexpDeltaPASI <- exp(exp(clin$Discovery_skin$DeltaPASI))
-clin$Replication_skin$dexpDeltaPASI <- exp(exp(clin$Replication_skin$DeltaPASI))
-
 #' Finally we select the columns we'll need for the analysis.
 
 for(i in 1:length(clin)){
   clin[[i]] <- clin[[i]] %>%
-    select(Sample_id, Patient_id, Tissue, Drug, Time, PASI, DeltaPASI, dexpDeltaPASI,
+    select(Sample_id, Patient_id, Tissue, Drug, Time, PASI,
            Onset_type, Age_of_onset, Biologic_Naive, Anti_TNF_Naive,
            Psoriatic_Arthritis, Gender, Age, BMI, HLA_C_0602, Cw6_PosNeg,
            wk12_PASI)
@@ -187,63 +181,6 @@ createTraitsSkin <- function(clin_dat){
       pull(Sample_id)
     clin_dat[[name]] <- clin_dat[[trait]]
     clin_dat[[name]][which(!clin_dat$Sample_id %in% samples)] <- NA
-  }
-  # Response traits
-  trait_anno$Response <- expand.grid(
-    Trait = "dexpDeltaPASI",
-    Type = "Response",
-    Tissue = c("Lesional", "Nonlesional"),
-    Time = c("wk00", "wk01", "wk12"),
-    Drug = c("Adalimumab", "Ustekinumab"),
-    stringsAsFactors = F
-  )
-  trait_anno$Response <- trait_anno$Response %>%
-    filter(!(Tissue == "Nonlesional" & Time == "wk01")) %>%
-    mutate(Name = paste0(Tissue,"_",Drug,"_",Time,"_Resp")) %>%
-    mutate(Name = gsub("Lesional", "LS", Name)) %>%
-    mutate(Name = gsub("Nonlesional", "NL", Name)) %>%
-    mutate(Name = gsub("Adalimumab", "ADA", Name)) %>%
-    mutate(Name = gsub("Ustekinumab", "UST", Name)) %>%
-    mutate(Short_name = Time)
-  for(i in 1:nrow(trait_anno$Response)){
-    name <- trait_anno$Response[i,"Name"]
-    trait <- trait_anno$Response[i,"Trait"]
-    tissue <- trait_anno$Response[i,"Tissue"]
-    drug <- trait_anno$Response[i,"Drug"]
-    time <- trait_anno$Response[i,"Time"]
-    samples <- clin_dat %>% 
-      filter(Tissue == tissue, Drug == drug, Time == time) %>% 
-      pull(Sample_id)
-    clin_dat[[name]] <- clin_dat[[trait]]
-    clin_dat[[name]][which(!clin_dat$Sample_id %in% samples)] <- NA
-  }
-  # Treatment traits
-  trait_anno$Treatment <- expand.grid(
-    Trait = NA,
-    Type = "Treatment",
-    Tissue = c("Lesional", "Nonlesional"),
-    Time = c("wk01", "wk12"),
-    Drug = c("Adalimumab", "Ustekinumab"),
-    stringsAsFactors = F
-  )
-  trait_anno$Treatment <- trait_anno$Treatment %>%
-    filter(!(Tissue == "Nonlesional" & Time == "wk01")) %>%
-    mutate(Name = paste0(Tissue,"_",Drug,"_",Time,"_vs_wk00")) %>%
-    mutate(Name = gsub("Lesional", "LS", Name)) %>%
-    mutate(Name = gsub("Nonlesional", "NL", Name)) %>%
-    mutate(Name = gsub("Adalimumab", "ADA", Name)) %>%
-    mutate(Name = gsub("Ustekinumab", "UST", Name)) %>%
-    mutate(Short_name = paste0(Time," vs wk00"))
-  for(i in 1:nrow(trait_anno$Treatment)){
-    name <- trait_anno$Treatment[i,"Name"]
-    tissue <- trait_anno$Treatment[i,"Tissue"]
-    drug <- trait_anno$Treatment[i,"Drug"]
-    time <- trait_anno$Treatment[i,"Time"]
-    clin_dat[[name]] <- NA
-    wk00_samples <- clin_dat %>% filter(Tissue == tissue, Drug == drug, Time == "wk00") %>% pull(Sample_id)
-    treated_samples <- clin_dat %>% filter(Tissue == tissue, Drug == drug, Time == time) %>% pull(Sample_id)
-    clin_dat[[name]][which(clin_dat$Sample_id %in% wk00_samples)] <- 0
-    clin_dat[[name]][which(clin_dat$Sample_id %in% treated_samples)] <- 1
   }
   # Bind together trait annotation data frames
   trait_anno <- bind_rows(trait_anno)
@@ -394,15 +331,10 @@ clin <- clin %>%
   mutate(Anti_TNF_Naive = if_else(Adalimumab == "Stopped_before_wk00", "No", Anti_TNF_Naive)) %>%
   mutate(Anti_TNF_Naive = if_else(Etanercept == "Stopped_before_wk00", "No", Anti_TNF_Naive))
 
-#' Prelinary analysis also revealed that the distribution of delta PASI is very skewed; we correct this here
-#' with a double exponential transformation.
-
-clin$dexpDeltaPASI <- exp(exp(clin$DeltaPASI))
-
 #' Finally we select the columns we'll need for the analysis.
 
 clin <- clin %>%
-  select(Sample_id, Patient_id, Tissue, Drug, Time, PASI, DeltaPASI, dexpDeltaPASI,
+  select(Sample_id, Patient_id, Tissue, Drug, Time, PASI,
          Onset_type, Age_of_onset, Biologic_Naive, Anti_TNF_Naive,
          Psoriatic_Arthritis, Gender, Age, BMI, HLA_C_0602, Cw6_PosNeg,
          wk12_PASI)
@@ -488,59 +420,6 @@ createTraitsBlood <- function(clin_dat){
       pull(Sample_id)
     clin_dat[[name]] <- clin_dat[[trait]]
     clin_dat[[name]][which(!clin_dat$Sample_id %in% samples)] <- NA
-  }
-  # Response traits
-  trait_anno$Response <- expand.grid(
-    Trait = "dexpDeltaPASI",
-    Type = "Response",
-    Tissue = "Blood",
-    Time = c("wk00", "wk01", "wk04", "wk12"),
-    Drug = c("Adalimumab", "Ustekinumab"),
-    stringsAsFactors = F
-  )
-  trait_anno$Response <- trait_anno$Response %>%
-    mutate(Name = paste0(Tissue,"_",Drug,"_",Time,"_Resp")) %>%
-    mutate(Name = gsub("Blood", "BL", Name)) %>%
-    mutate(Name = gsub("Adalimumab", "ADA", Name)) %>%
-    mutate(Name = gsub("Ustekinumab", "UST", Name)) %>%
-    mutate(Short_name = Time)
-  for(i in 1:nrow(trait_anno$Response)){
-    name <- trait_anno$Response[i,"Name"]
-    trait <- trait_anno$Response[i,"Trait"]
-    tissue <- trait_anno$Response[i,"Tissue"]
-    drug <- trait_anno$Response[i,"Drug"]
-    time <- trait_anno$Response[i,"Time"]
-    samples <- clin_dat %>% 
-      filter(Tissue == tissue, Drug == drug, Time == time) %>% 
-      pull(Sample_id)
-    clin_dat[[name]] <- clin_dat[[trait]]
-    clin_dat[[name]][which(!clin_dat$Sample_id %in% samples)] <- NA
-  }
-  # Treatment traits
-  trait_anno$Treatment <- expand.grid(
-    Trait = NA,
-    Type = "Treatment",
-    Tissue = "Blood",
-    Time = c("wk01", "wk04", "wk12"),
-    Drug = c("Adalimumab", "Ustekinumab"),
-    stringsAsFactors = F
-  )
-  trait_anno$Treatment <- trait_anno$Treatment %>%
-    mutate(Name = paste0(Tissue,"_",Drug,"_",Time,"_vs_wk00")) %>%
-    mutate(Name = gsub("Blood", "BL", Name)) %>%
-    mutate(Name = gsub("Adalimumab", "ADA", Name)) %>%
-    mutate(Name = gsub("Ustekinumab", "UST", Name)) %>%
-    mutate(Short_name = paste0(Time," vs wk00"))
-  for(i in 1:nrow(trait_anno$Treatment)){
-    name <- trait_anno$Treatment[i,"Name"]
-    tissue <- trait_anno$Treatment[i,"Tissue"]
-    drug <- trait_anno$Treatment[i,"Drug"]
-    time <- trait_anno$Treatment[i,"Time"]
-    clin_dat[[name]] <- NA
-    wk00_samples <- clin_dat %>% filter(Tissue == tissue, Drug == drug, Time == "wk00") %>% pull(Sample_id)
-    treated_samples <- clin_dat %>% filter(Tissue == tissue, Drug == drug, Time == time) %>% pull(Sample_id)
-    clin_dat[[name]][which(clin_dat$Sample_id %in% wk00_samples)] <- 0
-    clin_dat[[name]][which(clin_dat$Sample_id %in% treated_samples)] <- 1
   }
   # Bind together trait annotation data frames
   trait_anno <- bind_rows(trait_anno)
