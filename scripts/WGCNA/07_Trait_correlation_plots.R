@@ -67,7 +67,7 @@ colnames(factors)[1] <- "Sample_id"
 
 #' ### Module and factor-trait correlations
 #' 
-#' We'll also laod the module/factor-trait correlation data.
+#' We'll also load the module/factor-trait correlation data.
 
 cor_dat <- rbind(
  read.delim("results/WGCNA/03_Get_disease_and_disease_severity_correlations/Skin/Module-trait_correlations.txt"),

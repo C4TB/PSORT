@@ -30,6 +30,8 @@ Ashley Rider
 - <a href="#session-information" id="toc-session-information">Session
   information</a>
 
+Here, we’ll plot some exemplar module and factor-tait correlations.
+
 # Preliminaries
 
 ## Load packages
@@ -51,9 +53,15 @@ dir.create(output_directory)
 
 # Skin
 
+We’ll start by creating some plots for significant associations with the
+skin modules and factors. First, we need to load the data.
+
 ## Load data
 
 ### Clinical data
+
+We’ll load the clinical data for the PSORT-D and PSORT-R cohorts and
+bind it together.
 
 ``` r
 clin <- list(
@@ -67,6 +75,8 @@ clin <- bind_rows(clin)
 
 ### Eigengenes
 
+We’ll do the same for the module eigengenes…
+
 ``` r
 eigen <- rbind(
   read.delim("results/WGCNA/01_Module_identification/Skin/eigengenes.txt"),
@@ -75,6 +85,8 @@ eigen <- rbind(
 ```
 
 ### Latent factors
+
+And the latent factors…
 
 ``` r
 factors <- rbind(
@@ -86,6 +98,8 @@ colnames(factors)[1] <- "Sample_id"
 
 ### Module and factor-trait correlations
 
+We’ll also load the module/factor-trait correlation data.
+
 ``` r
 cor_dat <- rbind(
  read.delim("results/WGCNA/03_Get_disease_and_disease_severity_correlations/Skin/Module-trait_correlations.txt"),
@@ -94,6 +108,9 @@ cor_dat <- rbind(
 ```
 
 ## Plots
+
+Below we define a function that assembles all the above data into a
+correlation plot and use it to plot some exemplars in skin.
 
 ``` r
 plotModuleTrait <- function(module, trait, cohort, tissue, time, drug, clin, eigen, x_title, cohort_facet, text_size = 12){
@@ -538,6 +555,8 @@ plot_list[[length(plot_list) + 1]] <- p
 
 # Blood
 
+Now we’ll do the same as above for blood.
+
 ## Load data
 
 ### Clinical data
@@ -688,6 +707,9 @@ plot_list[[length(plot_list) + 1]] <- p
 ```
 
 # Assemble plot panel
+
+Finally, we’ll assemble the skin and blood plots into one panel and
+save.
 
 ``` r
 grid.arrange(grobs = plot_list, ncol = 5)
