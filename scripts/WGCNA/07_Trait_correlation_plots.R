@@ -7,7 +7,7 @@
 #' ---
 
 #+ echo = FALSE
-knitr::opts_chunk$set(message = FALSE, warning = FALSE, fig.width = 12, fig.height = 9)
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, fig.width = 23, fig.height = 16)
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 
 #' # Preliminaries
@@ -655,42 +655,6 @@ pdf(paste0(output_directory,"/Skin_Blood_trait_plots.pdf"), width = 23, height =
 grid.arrange(grobs = plot_list, ncol = 5)
 dev.off()
 
+#' # Session information
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+sessionInfo()
