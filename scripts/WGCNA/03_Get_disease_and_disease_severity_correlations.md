@@ -2,7 +2,7 @@ Correlation of disease endotypes and disease severity with module
 eigengenes and latent factors
 ================
 Ashley Rider
-2024-10-03
+2024-10-04
 
 - <a href="#preliminaries" id="toc-preliminaries">Preliminaries</a>
   - <a href="#load-packages" id="toc-load-packages">Load packages</a>
@@ -488,7 +488,7 @@ createTraitsBlood <- function(clin_dat){
   trait_anno <- list()
   # Disease traits
   trait_anno$Disease <- expand.grid(
-    Trait = c("Age_of_onset", "Onset_type", "Anti_TNF_Naive", "Psoriatic_Arthritis", 
+    Trait = c("Age_of_onset", "Anti_TNF_Naive", "Psoriatic_Arthritis", 
               "Gender", "Age", "BMI", "Cw6_PosNeg"),
     Type = "Disease",
     Tissue = "Blood",
@@ -576,28 +576,26 @@ cohorts that comprise them. Let’s examine this table.
 traits$trait_anno
 ```
 
-    ##                  Trait             Type Tissue      Time        Drug
-    ## 1         Age_of_onset          Disease  Blood      wk00  Both drugs
-    ## 2           Onset_type          Disease  Blood      wk00  Both drugs
-    ## 3       Anti_TNF_Naive          Disease  Blood      wk00  Both drugs
-    ## 4  Psoriatic_Arthritis          Disease  Blood      wk00  Both drugs
-    ## 5               Gender          Disease  Blood      wk00  Both drugs
-    ## 6                  Age          Disease  Blood      wk00  Both drugs
-    ## 7                  BMI          Disease  Blood      wk00  Both drugs
-    ## 8           Cw6_PosNeg          Disease  Blood      wk00  Both drugs
-    ## 9                 PASI Disease severity  Blood All times  Adalimumab
-    ## 10                PASI Disease severity  Blood All times Ustekinumab
-    ##                           Name   Short_name
-    ## 1         BL_wk00_Age_of_onset Age of onset
-    ## 2           BL_wk00_Onset_type   Onset type
-    ## 3       BL_wk00_Anti_TNF_Naive   TNFi-naive
-    ## 4  BL_wk00_Psoriatic_Arthritis          PsA
-    ## 5               BL_wk00_Gender          Sex
-    ## 6                  BL_wk00_Age          Age
-    ## 7                  BL_wk00_BMI          BMI
-    ## 8           BL_wk00_Cw6_PosNeg          Cw6
-    ## 9                  BL_ADA_PASI         PASI
-    ## 10                 BL_UST_PASI         PASI
+    ##                 Trait             Type Tissue      Time        Drug
+    ## 1        Age_of_onset          Disease  Blood      wk00  Both drugs
+    ## 2      Anti_TNF_Naive          Disease  Blood      wk00  Both drugs
+    ## 3 Psoriatic_Arthritis          Disease  Blood      wk00  Both drugs
+    ## 4              Gender          Disease  Blood      wk00  Both drugs
+    ## 5                 Age          Disease  Blood      wk00  Both drugs
+    ## 6                 BMI          Disease  Blood      wk00  Both drugs
+    ## 7          Cw6_PosNeg          Disease  Blood      wk00  Both drugs
+    ## 8                PASI Disease severity  Blood All times  Adalimumab
+    ## 9                PASI Disease severity  Blood All times Ustekinumab
+    ##                          Name   Short_name
+    ## 1        BL_wk00_Age_of_onset Age of onset
+    ## 2      BL_wk00_Anti_TNF_Naive   TNFi-naive
+    ## 3 BL_wk00_Psoriatic_Arthritis          PsA
+    ## 4              BL_wk00_Gender          Sex
+    ## 5                 BL_wk00_Age          Age
+    ## 6                 BL_wk00_BMI          BMI
+    ## 7          BL_wk00_Cw6_PosNeg          Cw6
+    ## 8                 BL_ADA_PASI         PASI
+    ## 9                 BL_UST_PASI         PASI
 
 We’ll save this data to file for later use.
 
