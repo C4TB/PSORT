@@ -434,7 +434,7 @@ createTraitsBlood <- function(clin_dat){
   trait_anno <- list()
   # Disease traits
   trait_anno$Disease <- expand.grid(
-    Trait = c("Age_of_onset", "Onset_type", "Anti_TNF_Naive", "Psoriatic_Arthritis", 
+    Trait = c("Age_of_onset", "Anti_TNF_Naive", "Psoriatic_Arthritis", 
               "Gender", "Age", "BMI", "Cw6_PosNeg"),
     Type = "Disease",
     Tissue = "Blood",

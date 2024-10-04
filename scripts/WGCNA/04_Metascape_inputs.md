@@ -1,7 +1,7 @@
 Format inputs for Metascape
 ================
 Ashley Rider
-2024-10-03
+2024-10-04
 
 - <a href="#load-packages" id="toc-load-packages">Load packages</a>
 - <a href="#create-output-directory"
