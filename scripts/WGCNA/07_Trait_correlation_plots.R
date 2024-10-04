@@ -10,6 +10,8 @@
 knitr::opts_chunk$set(message = FALSE, warning = FALSE, fig.width = 23, fig.height = 16)
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 
+#' Here, we'll plot some exemplar module and factor-tait correlations.
+#' 
 #' # Preliminaries
 #' 
 #' ## Load packages
@@ -27,9 +29,14 @@ dir.create(output_directory)
 
 #' # Skin
 #' 
+#' We'll start by creating some plots for significant associations with the skin modules and factors. First, we need to load
+#' the data.
+#' 
 #' ## Load data
 #' 
 #' ### Clinical data
+#' 
+#' We'll load the clinical data for the PSORT-D and PSORT-R cohorts and bind it together.
 
 clin <- list(
   read.delim("results/WGCNA/03_Get_disease_and_disease_severity_correlations/Skin/clin.txt"),
@@ -40,6 +47,8 @@ clin[[2]]$Cohort <- "Replication"
 clin <- bind_rows(clin)
 
 #' ### Eigengenes
+#' 
+#' We'll do the same for the module eigengenes...
 
 eigen <- rbind(
   read.delim("results/WGCNA/01_Module_identification/Skin/eigengenes.txt"),
@@ -47,6 +56,8 @@ eigen <- rbind(
 )
 
 #' ### Latent factors
+#' 
+#' And the latent factors...
 
 factors <- rbind(
   read.delim("data/latent_factors/skin_d_m.csv", sep = ","),
@@ -55,6 +66,8 @@ factors <- rbind(
 colnames(factors)[1] <- "Sample_id"
 
 #' ### Module and factor-trait correlations
+#' 
+#' We'll also laod the module/factor-trait correlation data.
 
 cor_dat <- rbind(
  read.delim("results/WGCNA/03_Get_disease_and_disease_severity_correlations/Skin/Module-trait_correlations.txt"),
@@ -62,6 +75,9 @@ cor_dat <- rbind(
 )
 
 #' ## Plots
+#' 
+#' Below we define a function that assembles all the above data into a correlation plot and use it to 
+#' plot some exemplars in skin.
 
 plotModuleTrait <- function(module, trait, cohort, tissue, time, drug, clin, eigen, x_title, cohort_facet, text_size = 12){
   # Assemble data
@@ -504,6 +520,8 @@ plot_list[[length(plot_list) + 1]] <- p
 
 #' # Blood
 #' 
+#' Now we'll do the same as above for blood.
+#' 
 #' ## Load data
 #' 
 #' ### Clinical data
@@ -644,6 +662,8 @@ p <- plotModuleTrait(module = module, trait = "PASI",
 plot_list[[length(plot_list) + 1]] <- p
 
 #' # Assemble plot panel
+#' 
+#' Finally, we'll assemble the skin and blood plots into one panel and save.
 
 grid.arrange(grobs = plot_list, ncol = 5)
 
