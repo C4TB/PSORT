@@ -112,7 +112,7 @@ cnts <- voom(cnts)$E
 #' ## Plots
 
 plotGeneTrait <- function(gene, gene_symbol, module, trait, cohort, tissue, time, drug, clin, cnts, x_title, cohort_facet, 
-                          text_size = 18){
+                          text_size = 20){
   # Assemble data
   clin <- clin[,c("Sample_id", "Cohort", "Tissue", "Time", "Drug", trait)] %>%
     filter(Cohort %in% cohort, Tissue %in% tissue, Time %in% time, Drug %in% drug)
@@ -295,10 +295,10 @@ for(i in 1:length(genes)){
 }
 
 # Save
-png(paste0(output_directory,"/BMI-PASI_trait_plots.png"), width = 30, height = 18, units = "in", res = 300)
+png(paste0(output_directory,"/BMI-PASI_trait_plots.png"), width = 32, height = 16, units = "in", res = 300)
 grid.arrange(grobs = plot_list, ncol = 6)
 dev.off()
-pdf(paste0(output_directory,"/BMI-PASI_trait_plots.pdf"), width = 30, height = 18)
+pdf(paste0(output_directory,"/BMI-PASI_trait_plots.pdf"), width = 32, height = 16)
 grid.arrange(grobs = plot_list, ncol = 6)
 dev.off()
 
