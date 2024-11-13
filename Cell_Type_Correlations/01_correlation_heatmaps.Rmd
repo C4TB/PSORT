@@ -1,8 +1,7 @@
 PSORT: Correlation heatmaps
 ===========================
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+<!-- ## libraries ---- -->
 
 library(tidyverse)
 library(pheatmap)
