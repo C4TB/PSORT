@@ -22,7 +22,7 @@ Per-sample imputed absolute cell fractions for each cell type were tested for as
 
 
 
-```{r function definitions, echo=TRUE}
+```r
 
 # Function to get cell type correlations
 get_cell_type_correlations = function(row_data, col_data, cor_method = "kendall", padj_method = "BH"){
@@ -70,7 +70,7 @@ draw_heatmap = function(cor_df, padj_df){
 
 ```
 
-```{r load input data, echo=FALSE}
+```r
 
 # Load input data: Blood
 blood_cb_fractions = readRDS(file = "paper_data/blood_cb_fractions.RData")
