@@ -3,6 +3,7 @@ PSORT: Correlation heatmaps
 
 <!-- ## libraries ---- -->
 
+```r
 library(tidyverse)
 library(pheatmap)
 
