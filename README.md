@@ -29,3 +29,14 @@ This repository contains several R scripts and workbooks which cover the core an
 | 5, 6 | [link](/PASI_differential_expression_analysis/02_5_2_dea_DR_bdrug.md) | Carries out PASI differential expression analysis |
 | 5, 6 | [link](/PASI_differential_expression_analysis/02_5_6_mod_fact_col_vp.md) | Creates PASI volcano plots |
 | 5, 6 | [link](/PASI_differential_expression_analysis/02_5_5_mod_fact_col_hm.md) | Creates Metascape heatmaps |
+
+| Supplementary figure | Link to script or workbook | Details |
+|------------------|---------------------------|---------------------------|
+| 4 | [link](/WGCNA/10_Module_preservation_analysis.R) | Runs module preservation analysis between skin and blood |
+| 4 | [link](/WGCNA/11_Module_preservation_plots.md) | Creates plots to visualise the module preservation analysis results |
+| 6 | [link](/Cell_Type_Correlations/01_correlation_heatmaps.md) | Creates cell type correlation heatmaps |
+| 7 | [link](/WGCNA/09_Broad_single_cell_heatmaps.md) | Plots expression of single cell marker genes from [Hughes et al. (2020)](https://www.sciencedirect.com/science/article/pii/S107476132030409X?via%3Dihub) |
+| 10 | [link](/Cell_Type_Correlations/01_correlation_heatmaps.md) | Creates cell type correlation heatmaps |
+| 18 | [link](/PASI_differential_expression_analysis/02_5_2_dea_DR_bdrug.md) | Carries out PASI differential expression analysis |
+| 18 | [link](/PASI_differential_expression_analysis/02_5_6_mod_fact_col_vp.md) | Creates PASI volcano plots |
+| 18 | [link](/PASI_differential_expression_analysis/02_5_5_mod_fact_col_hm.md) | Creates Metascape heatmaps |
