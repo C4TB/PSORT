@@ -12,10 +12,12 @@ Password: tower squid ramp
 ## Repository contents
 In order to reproduce the analyses in this paper you will need to download the RNA-Seq data and clinical data from ArrayExpress (see link above) You will also need the supplementary data from the paper, including: the ICA factor loadings, metagenes and most aligned features; the WGCNA module genes and eigengenes. Some of this data is also available in this repository in the following directory: Cell_Type_Correlations/paper_data
 
-This repository contains several R scripts and workbooks which cover the core analyses in this paper. These are oraganised into several directories and below we provide details about which scripts and workbooks correspond to which figures in the paper.
+This repository contains several R scripts and workbooks which cover the core analyses in this paper. These are oraganised into several directories and below we provide details about which scripts and workbooks correspond to which figures in the paper. Rows in the table below marked as preliminary analyses should be run before those for generating figures.
 
 | Figure | Link to script or workbook | Details |
 |------------------|---------------------------|---------------------------|
+| Preliminary analysis | [link](/WGCNA/01_Module_identification.md) | Runs WGCNA to identify gene modules|
+| Preliminary analysis | [link](/Factor_analysis/factor_analysis.md) | Runs ICA to identify latent factors |
 | 1A, 1B | [link](/WGCNA/03_Get_disease_and_disease_severity_correlations.md) | Calculates correlations between modules/factors and traits |
 | 1A, 1B | [link](/WGCNA/04_Metascape_inputs.md) | Creates imput files for Metascape; functional annotations from Metascape were used to create descriptive module and factor names |
 | 1A, 1B | [link](/WGCNA/05_Module_factor_names.R) | Creates descriptive module and factor names which are used as annotations in the module/factor-trait correlation heatmaps |
