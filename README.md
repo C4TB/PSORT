@@ -23,3 +23,7 @@ This repository contains several R scripts and workbooks which cover the core an
 | 1C | [link](/WGCNA/07_Trait_correlation_plots.md) | Plots exemplar module/factor-trait correlations |
 | 2A, 2B | [link](/Factor_analysis/factor_analysis.md) | Carries out BMI differential expression analysis and creates BMI and PASI association heatmap |
 | 2C | [link](/WGCNA/08_Gene-level_trait_correlation_plots.R) | Creates exemplar gene-level BMI and PASI association plots |
+| 4 | [link](/Factor_analysis/factor_analysis.md) | Carries out BMI endotype analysis |
+| 5, 6 | [link](/PASI_differential_expression_analysis/02_5_2_dea_DR_bdrug.md) | Carries out PASI differential expression analysis |
+| 5, 6 | [link](/PASI_differential_expression_analysis/02_5_6_mod_fact_col_vp.md) | Creates PASI volcano plots |
+| 5, 6 | [link](/PASI_differential_expression_analysis/02_5_5_mod_fact_col_hm.md) | Creates Metascape heatmaps |
