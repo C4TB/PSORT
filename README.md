@@ -26,7 +26,7 @@ This repository contains several R scripts and workbooks which cover the core an
 | 2A, 2B | [link](/Factor_analysis/factor_analysis.md) | Carries out BMI differential expression analysis and creates BMI and PASI association heatmap |
 | 2C | [link](/WGCNA/08_Gene-level_trait_correlation_plots.R) | Creates exemplar gene-level BMI and PASI association plots |
 | 3 | [link](/Factor_analysis/factor_analysis.md) | Carries out BMI endotype analysis |
-| 4 | [link](PSORT/Machine_learning/Example- Gaussian process regression using RNA eigengene modules.ipynb) | Provides overview of machine learning methodology |
+| 4 | [link](Machine_learning/Example_Gaussian_process_regression_using_RNA_eigengene_modules.ipynb) | Provides overview of machine learning methodology |
 | 5, 6 | [link](/PASI_differential_expression_analysis/02_5_2_dea_DR_bdrug.md) | Carries out PASI differential expression analysis |
 | 5, 6 | [link](/PASI_differential_expression_analysis/02_5_6_mod_fact_col_vp.md) | Creates PASI volcano plots |
 | 5, 6 | [link](/PASI_differential_expression_analysis/02_5_5_mod_fact_col_hm.md) | Creates Metascape heatmaps |
