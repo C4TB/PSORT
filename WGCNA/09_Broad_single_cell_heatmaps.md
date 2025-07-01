@@ -1,7 +1,7 @@
 Cross-referencing with Broad single cell data
 ================
 Ashley Rider
-2025-06-10
+2025-07-01
 
 - <a href="#preliminaries" id="toc-preliminaries">Preliminaries</a>
   - <a href="#load-packages" id="toc-load-packages">Load packages</a>
@@ -22,6 +22,9 @@ Ashley Rider
   - <a href="#plasma" id="toc-plasma">Plasma</a>
   - <a href="#schwann" id="toc-schwann">Schwann</a>
   - <a href="#sebocyte" id="toc-sebocyte">Sebocyte</a>
+  - <a href="#fibro-new-differentiating-markers"
+    id="toc-fibro-new-differentiating-markers">Fibro (new differentiating
+    markers)</a>
 - <a href="#session-information" id="toc-session-information">Session
   information</a>
 
@@ -851,6 +854,60 @@ draw(hm)
 ``` r
 # Save
 png(paste0(output_path,"/Sebocyte.png"), 
+    width = 9, height = 8.5, units = "in", res = 300)
+ComplexHeatmap::draw(hm)
+dev.off()
+```
+
+    ## png 
+    ##   2
+
+## Fibro (new differentiating markers)
+
+``` r
+# Choose marker genes to plot
+markers <- unique(c(
+  "DCN", "COL3A1", "SPARC", "APOE", "CXCL12", "COL18A1", "LUM",
+  "PDGFRA", "APCDD1", "CCL19", "COL8A1", "DPEP1", "LEF1", "MKX",
+  "TNMD", "FGF18", "HHIP", "S100B", "SOX10", "MYL4", "COL5A1",
+  "VCAM1", "POSTN", "TNC", "SFRP1", "PI16", "C7", "PLA2G2A",
+  "CH25H", "TNFSF13B", "MEF2C", "IL15", "WIF1", "RSPO4", "CRABP1",
+  "ITGA6", "PPARG", "COCH", "RGS5", "SLPI", "NKD2", "COL23A1",
+  "IL33", "CD34", "PCOLCE2", "RSPO3", "CORIN", "COL13A1", "DPP4",
+  "SCN7A", "CCL19", "TNC", "LRRC15", "PDLIM3", "LRRC17", "CTHRC1",
+  "ACTA2", "SFRP4", "MMP1", "PIEZO2", "THBS4", "CXCL6", "CXCL5",
+  "CXCL13", "ADAM12", "MMP3", "CDH2", "IL24", "ITGA10", "IL11",
+  "SFRP1", "SFRP2", "SFRP3", "SFRP4"
+))
+# Subset metadata
+meta_dat <- meta %>% filter(CellType1.50 == "Fibro", Condition == "Psoriasis")
+# Subset expression data
+cells <- c("GENE", meta_dat$NAME)
+expr_dat <- as.data.frame(dat[GENE %in% markers, ..cells])
+# Percentage expressed
+pcnt_dat <- melt(expr_dat)
+pcnt_dat <- pcnt_dat %>%
+  rename(all_of(c(NAME = "variable", Expression = "value"))) %>%
+  left_join(meta_dat, by = "NAME") %>%
+  mutate(Expressed = if_else(Expression > 0, T, F))
+pcnt_dat <- pcnt_dat %>%
+  group_by(Specific, GENE) %>%
+  summarise("TRUE" = mean(Expressed),
+            "FALSE" = mean(!Expressed)) %>%
+  as.data.frame()
+# Draw heatmap
+hm <- drawHeatmap(expr_dat = expr_dat, meta_dat = meta_dat, pcnt_dat = pcnt_dat)
+```
+
+``` r
+draw(hm)
+```
+
+![](09_Broad_single_cell_heatmaps_files/figure-gfm/unnamed-chunk-36-1.png)<!-- -->
+
+``` r
+# Save
+png(paste0(output_path,"/Fibro_new_diff_markers.png"), 
     width = 9, height = 8.5, units = "in", res = 300)
 ComplexHeatmap::draw(hm)
 dev.off()
