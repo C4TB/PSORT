@@ -1,0 +1,213 @@
+---
+title: "PCA Comparison of Discovery and Replication Cohorts"
+author: "Graham R Smith"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  github_document: default
+  html_document:
+    df_print: paged
+  word_document: default
+  pdf_document: default
+---
+  
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+
+# output batch corrected matrices?
+write_output <- FALSE
+```
+  
+  
+```{r libraries, echo = F, include = F}
+
+  # 2 cohort pca - derived from qc_swaps.R 
+## libraries ----
+
+library(tidyverse)
+library(edgeR)
+library(limma)
+library(splines)
+library(reshape2)
+library(qvalue)
+library(ggsci)
+library(cowplot)
+library(ggrepel)
+library(plotly)
+library(gridExtra)
+library(bioplotr)
+library(umap)
+
+
+```  
+  
+
+Read data back in, remove outlier Patients and Samples and filter genes by expression (cpm > 1 in a fraction > 0.5 of samples)
+
+
+```{r read, echo = F, include = F}
+
+# old clinfile <- file.path(qcd, "clinical/augmented_clinical_data.csv")
+clinfile <- "/data/ngrs2/PSORT/data/David_20_04_2020/combined_clin_w_PASI.csv"
+
+datad <- "/data/ngrs2/PSORT/data/"
+annofile <- file.path(datad, "Hs.anno.csv")
+dfile <-  file.path(datad, "combined_cnts.rds")
+
+# read annotation 
+ad <- read_csv(annofile)
+# remove the [Source:HGNC Symbol;Acc:HGNC:48404] stuff
+ad$Description <- sub(" \\[Source.*", "", ad$Description)
+
+# read clinical data 
+d <- read_csv(clinfile)
+# recode ... drug names are different
+d <- mutate(d, Drug = recode(Drug, "Adalimumab"="A", "Ustekinumab"="U" ),
+            Cohort = recode(Cohort, "Discovery" = "Discovery", "Validation" = "Replication"))
+# but use this for plots 
+drug_out <- list(A = "ADA", U = "UST")
+d <- mutate(d,  Time = recode(Time, "wk00"="0w","wk01"="1w","wk04"="4w","wk12"="12w")) %>% 
+              mutate(Time = factor(Time, levels = c("0w","1w","4w","12w")))
+
+d_input <- d 
+
+
+
+
+# get expression data
+edata <- read_rds(dfile)
+cat("n genes", nrow(edata), "\n")
+
+# filter to tissue 
+keep_samp <- d %>% filter (Tissue != "Blood" )
+
+# don't want these
+paste0("P", c(60006, 6011, 6042, 6043, 6044, 6045)) %in% keep_samp$Patient_id
+# just 6011 is labelled Discovery (they are all present in complete data d )
+keep_samp <- filter(keep_samp, ! Patient_id %in% paste0("P", c(60006, 6011, 6042, 6043, 6044, 6045)))
+
+# dont want these either - outliers in blood ... 
+to_rm <- c("PSORT-P1-18", "PSORT-P1-71", "PSORT-P1-UHR", "PSORT-P2-UHR-1", "PSORT-P2-UHR-2", "PSORT-P3-06", "PSORT-P3-07", "PSORT-P4-23")
+# and this is a duplicate sample for P6001 wk4 blood 
+to_rm <- c(to_rm, "PSORT-P1-52")
+keep_samp <- filter(keep_samp, ! Sample_id %in% to_rm)
+
+
+this_data <- DGEList(edata[, keep_samp$Sample_id])
+n <- nrow(keep_samp)
+keep_gene <- rowSums(cpm(this_data) >= 1) >= n * 0.5
+this_data <- DGEList(this_data[keep_gene, ])
+this_data <- calcNormFactors(this_data)
+#dim(this_data)
+
+voomed_data <- voom(this_data)
+# Filter, normalize
+#n <- nrow(keep_samp)
+#mat <- DGEList(cnts[, tmp$Sample_id])
+#keep <- rowSums(cpm(mat) >= 1) >= n / length(unique(tmp$Drug_Time))
+#mat <- DGEList(mat[keep, ])
+#mat <- calcNormFactors(mat)
+
+```
+
+Numbers of samples and genes
+
+```{r cohort_stats, include = T, echo = F}
+
+
+cat("after this, number of patients", length(table(keep_samp$Patient_id)), "\n")
+cat("number of genes", nrow(this_data), "\n")
+cat("number of samples", ncol(this_data), "\n")
+cat("distribution of samples over cohorts (D,R):", table(keep_samp$Cohort), "\n")
+
+
+```
+
+Define a function to do PCA 
+
+
+```{r pca_fn}
+pca_fn <- function(inputvdat) {
+  
+  logexpr <- rowMeans(inputvdat)
+  nk = 5000
+  to_keep = head(sort(logexpr,decreasing=TRUE), n = nk)
+  topE = inputvdat[names(to_keep),]
+  pca = prcomp(t(topE))
+  percentVar <- pca$sdev^2/sum(pca$sdev^2)
+  
+  
+  ds <- keep_samp
+  pd <- data.frame(PC1 = pca$x[, 1], PC2 = pca$x[, 2], PC3 = pca$x[, 3], PC4 = pca$x[, 4],
+                   Patient_id = as.character(ds$Patient_id), 
+                   PASI = ds$PASI, Cohort = ds$Cohort, Drug = ds$Drug,
+                   Time = ds$Time, Tissue = ds$Tissue)
+  
+  percentVar <- pca$sdev^2/sum(pca$sdev^2)
+  #these_dat <- pd %>% filter(Patient_id %in% int_p) %>% arrange(Patient_id)
+  #cat(as.character(these_p),"\n")
+  xlim=c(round(min(pd$PC1)),round(max(pd$PC1)))
+  ylim=c(round(min(pd$PC2)),round(max(pd$PC2)))
+  
+  mycols <- pal_d3()(4)
+  mycols <- mycols[c(1,3,4,2)]
+  names(mycols) <- c("0w","1w","4w","12w")
+  
+  
+  p <- ggplot(data = pd, aes(x = PC1, y = PC2, color = Time, Patient_id = Patient_id)) +
+    geom_point(size = 1.5, alpha = 0.5, aes(shape = Tissue)) + 
+    xlab(paste0("PC1: ", round(percentVar[1] * 100), "% variance")) + 
+    ylab(paste0("PC2: ", round(percentVar[2] * 100), "% variance")) +
+    scale_colour_manual(values = mycols) + 
+    scale_x_continuous(limits = xlim) + 
+    scale_y_continuous(limits = ylim) + ggtitle("Both Cohorts") + 
+    guides(size = FALSE, alpha = FALSE) + theme_bw(base_size = 12)
+  show(p)
+  # show(ggplotly(p))
+  
+
+    p <- ggplot(data = pd, aes(x = PC1, y = PC2, color = Time, Patient_id = Patient_id)) +
+      geom_point(size = 1.5, alpha = 0.5, aes(shape = Tissue)) + 
+      xlab(paste0("PC1: ", round(percentVar[1] * 100), "% variance")) + 
+      ylab(paste0("PC2: ", round(percentVar[2] * 100), "% variance")) +
+      scale_colour_manual(values = mycols) + 
+      scale_x_continuous(limits = xlim) + 
+      scale_y_continuous(limits = ylim) + 
+      facet_grid(.~Cohort) +
+      guides(size = FALSE, alpha = FALSE) + theme_bw(base_size = 12)
+
+  show(p)
+  #grid.arrange( grobs = gl, ncol = 2)
+  print(summary(lm(PC2 ~ Cohort, data = pd)))
+  print(var.test(PC2 ~ Cohort, data = pd))
+  
+  pd
+}
+
+```
+
+## PCA of Combined Discovery and Replicatiion Cohorts 
+
+Do PCA on top 5000 genes by expression (using both cohorts). Also show stats for lm (t-test) and var.test (F-test of variance) on PC2
+
+The lower plots are from the same PCA analysis, filtered to display data points from only one cohort
+
+```{r pca1}
+pca1 <- pca_fn(voomed_data$E)
+
+```
+
+
+## Apply removeBatchEffect 
+
+limma::removeBatchEffect fits a linear model with design matrix ~Cohort to the expression matrix E , and returns E - beta %*% design_matrix. It brings the two cohorts as much into register as possible, so that there is no longer any significant difference in the mean of PC2 between Discovery and Replication cohorts, and also much reduces the apparent difference in variance between them. 
+
+This strongly suggests that, in performing Differential Expression analysis on the combined D + R cohorts, a main effect for the Cohort should be included. 
+
+
+```{r pca2}
+voomed_data2 <- removeBatchEffect(voomed_data$E, batch = keep_samp$Cohort)
+pca2 <- pca_fn(voomed_data2)
+
+
+```
+
