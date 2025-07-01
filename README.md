@@ -7,7 +7,7 @@ The RNA-Seq data may be visualised and further explored through a [R Shiny web i
 Username: psort  
 Password: tower squid ramp
 ##  Graphical summary of study design 
-<img src='./Images/PSORT schematic 11-06-25 cropped.png'>  
+<img src='./Images/PSORT schematic 01-07-25 cropped.png'>  
 
 ## Repository contents
 In order to reproduce the analyses in this paper you will need to download the RNA-Seq data and clinical data from ArrayExpress (see link above) You will also need the supplementary data from the paper, including: the ICA factor loadings, metagenes and most aligned features; the WGCNA module genes and eigengenes. Some of this data is also available in this repository in the following directory: Cell_Type_Correlations/paper_data
