@@ -18,6 +18,7 @@ This repository contains several R scripts and workbooks which cover the core an
 |------------------|---------------------------|---------------------------|
 | Preliminary analysis | [link](/WGCNA/01_Module_identification.md) | Runs WGCNA to identify gene modules|
 | Preliminary analysis | [link](/Factor_analysis/factor_analysis.md) | Runs ICA to identify latent factors |
+| Preliminary analysis | [link](/Exploratory_analysis/01_4_DRpca.md) | Runs PCA to show effect of Discovery/Replication cohort and its mitigation |
 | 1A, 1B | [link](/WGCNA/03_Get_disease_and_disease_severity_correlations.md) | Calculates correlations between modules/factors and traits |
 | 1A, 1B | [link](/WGCNA/04_Metascape_inputs.md) | Creates imput files for Metascape; functional annotations from Metascape were used to create descriptive module and factor names |
 | 1A, 1B | [link](/WGCNA/05_Module_factor_names.R) | Creates descriptive module and factor names which are used as annotations in the module/factor-trait correlation heatmaps |
