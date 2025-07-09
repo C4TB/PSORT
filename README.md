@@ -1,4 +1,4 @@
-![DOI](https://zenodo.org/records/15847636)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15847636.svg)](https://doi.org/10.5281/zenodo.15847636)
 # Code repository for: *Transcriptomic profiling and machine learning uncover gene signatures of psoriasis endotypes and disease severity*
 Rider AC, Grantham HJ, Smith GR, Watson DS et al. on behalf of the [PSORT consortium](http://www.psort.org.uk/)
 ## ArrayExpress data link
